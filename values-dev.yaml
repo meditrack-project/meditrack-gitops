@@ -1,9 +1,151 @@
-# ─────────────────────────────────────────────────────────────
-# MediTrack — Dev environment overrides
-# Environment: dev
-# Namespace: meditrack-dev
-# Phase: 2 — Kubernetes + Helm Implementation
-# ─────────────────────────────────────────────────────────────
+# # ─────────────────────────────────────────────────────────────
+# # MediTrack — Dev environment overrides
+# # Environment: dev
+# # Namespace: meditrack-dev
+# # Phase: 2 — Kubernetes + Helm Implementation
+# # ─────────────────────────────────────────────────────────────
+
+# global:
+#   environment: development
+
+#   gateway:
+#     listenerName: dev
+
+#   userService:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     hpa:
+#       enabled: false
+#     pdb:
+#       enabled: false
+
+#   medicalService:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     hpa:
+#       enabled: false
+#     pdb:
+#       enabled: false
+
+#   healthService:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     hpa:
+#       enabled: false
+#     pdb:
+#       enabled: false
+
+#   aiService:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     hpa:
+#       enabled: false
+#     pdb:
+#       enabled: false
+
+#   frontend:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     hpa:
+#       enabled: false
+#     pdb:
+#       enabled: false
+
+#   userDb:
+#     storage: 2Gi
+#     resources:
+#       requests:
+#         cpu: 100m
+#         memory: 128Mi
+#       limits:
+#         cpu: 500m
+#         memory: 512Mi
+#     pdb:
+#       enabled: false
+
+#   medicalDb:
+#     storage: 2Gi
+#     resources:
+#       requests:
+#         cpu: 100m
+#         memory: 128Mi
+#       limits:
+#         cpu: 500m
+#         memory: 512Mi
+#     pdb:
+#       enabled: false
+
+#   healthDb:
+#     storage: 2Gi
+#     resources:
+#       requests:
+#         cpu: 100m
+#         memory: 128Mi
+#       limits:
+#         cpu: 500m
+#         memory: 512Mi
+#     pdb:
+#       enabled: false
+
+#   redis:
+#     storage:
+#       type: emptyDir
+#     nodeSelector: {}
+#     resources:
+#       requests:
+#         cpu: 50m
+#         memory: 64Mi
+#       limits:
+#         cpu: 200m
+#         memory: 256Mi
+#     pdb:
+#       enabled: false
+
+#   config:
+#     logLevel: debug
+#     environment: development
+#     allowedOrigins: "http://meditrack.dev.local"
+
+#   resourceQuota:
+#     requests:
+#       cpu: "2"
+#       memory: "4Gi"
+#     limits:
+#       cpu: "8"
+#       memory: "12Gi"
+#     pods: "30"
+#     services: "15"
+#     pvcs: "10"
 
 global:
   environment: development
@@ -12,6 +154,7 @@ global:
     listenerName: dev
 
   userService:
+    imageTag: "v2"
     replicas: 1
     resources:
       requests:
@@ -26,6 +169,7 @@ global:
       enabled: false
 
   medicalService:
+    imageTag: "v2"
     replicas: 1
     resources:
       requests:
@@ -40,6 +184,7 @@ global:
       enabled: false
 
   healthService:
+    imageTag: "v2"
     replicas: 1
     resources:
       requests:
@@ -54,6 +199,7 @@ global:
       enabled: false
 
   aiService:
+    imageTag: "v2"
     replicas: 1
     resources:
       requests:
@@ -68,6 +214,7 @@ global:
       enabled: false
 
   frontend:
+    imageTag: "v2"
     replicas: 1
     resources:
       requests:
