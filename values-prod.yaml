@@ -1,14 +1,48 @@
-# ─────────────────────────────────────────────────────────────
-# MediTrack — Prod environment overrides
-# Environment: prod
-# Phase: 2 — Kubernetes + Helm Implementation
-# ─────────────────────────────────────────────────────────────
+# # ─────────────────────────────────────────────────────────────
+# # MediTrack — Prod environment overrides
+# # Environment: prod
+# # Phase: 2 — Kubernetes + Helm Implementation
+# # ─────────────────────────────────────────────────────────────
+
+# global:
+#   environment: production
+
+#   gateway:
+#     listenerName: prod
+
+#   resourceQuota:
+#     requests:
+#       cpu: "8"
+#       memory: "12Gi"
+#     limits:
+#       cpu: "16"
+#       memory: "24Gi"
+#     pods: "60"
+#     services: "20"
+#     pvcs: "15"
+
+
 
 global:
   environment: production
 
   gateway:
     listenerName: prod
+
+  userService:
+    imageTag: "v2"
+
+  medicalService:
+    imageTag: "v2"
+
+  healthService:
+    imageTag: "v2"
+
+  aiService:
+    imageTag: "v2"
+
+  frontend:
+    imageTag: "v2"
 
   resourceQuota:
     requests:
