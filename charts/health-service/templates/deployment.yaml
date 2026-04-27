@@ -48,7 +48,7 @@ spec:
         {{- include "meditrack.initWait" (dict "name" "redis" "port" "6379") | nindent 8 }}
       containers:
         - name: {{ .Values.global.healthService.name }}
-          image: {{ .Values.global.registry }}/{{ .Values.global.healthService.image }}:{{ .Values.global.imageTag }}
+          image: "{{ include "meditrack.image" (dict "root" . "service" .Values.global.healthService) }}"
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.global.healthService.port }}
