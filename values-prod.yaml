@@ -25,25 +25,18 @@
 
 global:
   environment: production
-
   gateway:
     listenerName: prod
-
   userService:
     imageTag: "v2"
-
   medicalService:
     imageTag: "v2"
-
   healthService:
     imageTag: "v2"
-
   aiService:
-    imageTag: "v2"
-
+    imageTag: "v2.0.1"
   frontend:
     imageTag: "v2"
-
   resourceQuota:
     requests:
       cpu: "8"
