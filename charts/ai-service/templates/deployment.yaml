@@ -48,7 +48,7 @@ spec:
 
       containers:
         - name: {{ .Values.global.aiService.name }}
-          image: {{ .Values.global.registry }}/{{ .Values.global.aiService.image }}:{{ .Values.global.imageTag }}
+          image: "{{ include "meditrack.image" (dict "root" . "service" .Values.global.aiService) }}"
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.global.aiService.port }}
