@@ -149,10 +149,8 @@
 
 global:
   environment: development
-
   gateway:
     listenerName: dev
-
   userService:
     imageTag: "v2"
     replicas: 1
@@ -167,7 +165,6 @@ global:
       enabled: false
     pdb:
       enabled: false
-
   medicalService:
     imageTag: "v2"
     replicas: 1
@@ -182,7 +179,6 @@ global:
       enabled: false
     pdb:
       enabled: false
-
   healthService:
     imageTag: "v2"
     replicas: 1
@@ -197,9 +193,8 @@ global:
       enabled: false
     pdb:
       enabled: false
-
   aiService:
-    imageTag: "v2"
+    imageTag: "v2.0.1-dev.4-dev"
     replicas: 1
     resources:
       requests:
@@ -212,7 +207,6 @@ global:
       enabled: false
     pdb:
       enabled: false
-
   frontend:
     imageTag: "v2"
     replicas: 1
@@ -227,7 +221,6 @@ global:
       enabled: false
     pdb:
       enabled: false
-
   userDb:
     storage: 2Gi
     resources:
@@ -239,7 +232,6 @@ global:
         memory: 512Mi
     pdb:
       enabled: false
-
   medicalDb:
     storage: 2Gi
     resources:
@@ -251,7 +243,6 @@ global:
         memory: 512Mi
     pdb:
       enabled: false
-
   healthDb:
     storage: 2Gi
     resources:
@@ -263,7 +254,6 @@ global:
         memory: 512Mi
     pdb:
       enabled: false
-
   redis:
     storage:
       type: emptyDir
@@ -277,12 +267,10 @@ global:
         memory: 256Mi
     pdb:
       enabled: false
-
   config:
     logLevel: debug
     environment: development
     allowedOrigins: "http://meditrack.dev.local"
-
   resourceQuota:
     requests:
       cpu: "2"
