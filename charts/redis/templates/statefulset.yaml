@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.global.redis.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.redis.name }}
+    app.kubernetes.io/name: {{ .Values.global.redis.name }}
+    app.kubernetes.io/part-of: meditrack
+spec:
+  replicas: 1
+  serviceName: {{ .Values.global.redis.name }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.redis.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.global.redis.name }}
+        app.kubernetes.io/name: {{ .Values.global.redis.name }}
+        app.kubernetes.io/part-of: meditrack
+    spec:
+      serviceAccountName: meditrack-redis-sa
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      {{- if .Values.global.redis.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.global.redis.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          command:
+            - redis-server
+            - --maxmemory
+            - "128mb"
+            - --maxmemory-policy
+            - allkeys-lru
+          ports:
+            - containerPort: {{ .Values.global.redis.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: {{ .Values.global.redis.resources.requests.cpu }}
+              memory: {{ .Values.global.redis.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.global.redis.resources.limits.cpu }}
+              memory: {{ .Values.global.redis.resources.limits.memory }}
+          livenessProbe:
+            exec:
+              command: [redis-cli, ping]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: [redis-cli, ping]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- include "meditrack.containerSecurityContext" . | nindent 10 }}
+      volumes:
+        - name: redis-data
+          {{- if eq .Values.global.redis.storage.type "hostPath" }}
+          hostPath:
+            path: {{ .Values.global.redis.storage.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

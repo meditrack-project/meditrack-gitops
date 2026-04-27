@@ -1,0 +1,52 @@
+{{- if .Values.global.gateway.enabled }}
+{{- $isdev := eq .Release.Name "meditrack-dev" }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}-public-routes
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Release.Name }}-gateway
+      namespace: {{ .Values.global.namespace.infra }}
+      sectionName: {{ .Values.global.gateway.listenerName }}
+    - name: {{ .Release.Name }}-gateway
+      namespace: {{ .Values.global.namespace.infra }}
+      sectionName: {{ .Values.global.gateway.listenerName }}-https
+  hostnames:
+    - {{ if $isdev }}{{ .Values.global.gateway.hosts.dev }}{{ else }}{{ .Values.global.gateway.hosts.prod }}{{ end }}
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /api/auth/register
+          method: POST
+      backendRefs:
+        - name: {{ .Values.global.userService.name }}
+          port: {{ .Values.global.userService.port }}
+    - matches:
+        - path:
+            type: Exact
+            value: /api/auth/login
+          method: POST
+      backendRefs:
+        - name: {{ .Values.global.userService.name }}
+          port: {{ .Values.global.userService.port }}
+    - matches:
+        - path:
+            type: Exact
+            value: /api/auth/jwks
+          method: GET
+      backendRefs:
+        - name: {{ .Values.global.userService.name }}
+          port: {{ .Values.global.userService.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ .Values.global.frontend.name }}
+          port: {{ .Values.global.frontend.port }}
+{{- end }}

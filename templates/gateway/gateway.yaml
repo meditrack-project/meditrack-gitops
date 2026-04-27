@@ -1,0 +1,42 @@
+{{- if .Values.global.gateway.enabled }}
+{{- $env := .Values.global.environment }}
+{{- $isdev := eq .Release.Name "meditrack-dev" }}
+{{- $isprod := eq .Release.Name "meditrack-prod" }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ .Release.Name }}-gateway
+  namespace: {{ .Values.global.namespace.infra }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  gatewayClassName: {{ .Values.global.gateway.className }}
+  listeners:
+    - name: {{ .Values.global.gateway.listenerName }}
+      port: 80
+      protocol: HTTP
+      hostname: {{ if $isdev }}{{ .Values.global.gateway.hosts.dev }}{{ else }}{{ .Values.global.gateway.hosts.prod }}{{ end }}
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+    - name: {{ .Values.global.gateway.listenerName }}-https
+      port: 443
+      protocol: HTTPS
+      hostname: {{ if $isdev }}{{ .Values.global.gateway.hosts.dev }}{{ else }}{{ .Values.global.gateway.hosts.prod }}{{ end }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ .Release.Name }}-tls
+            namespace: {{ .Values.global.namespace.infra }}
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+{{- end }}

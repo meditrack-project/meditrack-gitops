@@ -1,0 +1,548 @@
+# Default deny all ingress and egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow DNS egress for all pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Allow ingress from infra namespace (KGateway traffic)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-infra-namespace
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.global.namespace.infra }}
+---
+# user-service → user-db only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-user-service-to-user-db
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.userDb.name }}
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+# medical-service → medical-db + redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-medical-service-to-medical-db
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.medicalService.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.medicalDb.name }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.redis.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.redis.port }}
+---
+# health-service → health-db + redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-health-service-to-health-db
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.healthService.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.healthDb.name }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.redis.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.redis.port }}
+---
+# ai-service → medical-service + health-service + redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-to-services-and-redis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.aiService.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.medicalService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.medicalService.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.healthService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.healthService.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.redis.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.redis.port }}
+---
+# ai-service → internet (Gemini/Groq/HuggingFace APIs)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-egress-internet
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.aiService.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+---
+# Allow DB pods to accept ingress on 5432
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-db-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: meditrack-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+# Allow Redis to accept ingress on 6379
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.redis.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.redis.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-to-medical-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: meditrack
+    app.kubernetes.io/managed-by: helm
+    environment: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.medicalService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.aiService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.medicalService.port }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-to-health-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/part-of: meditrack
+    app.kubernetes.io/managed-by: helm
+    environment: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.healthService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.aiService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.healthService.port }}
+---
+# Frontend → user-service + all backend services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.frontend.name }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.userService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.userService.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.medicalService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.medicalService.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.healthService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.healthService.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.aiService.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.aiService.port }}
+---
+# User-service ingress from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-user-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.frontend.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.userService.port }}
+---
+# Medical-service ingress from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-medical-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.medicalService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.frontend.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.medicalService.port }}
+---
+# Health-service ingress from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-health-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.healthService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.frontend.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.healthService.port }}
+---
+# AI-service ingress from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-ai-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.aiService.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.frontend.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.aiService.port }}
+
+---
+# Allow all ingress from envoy-gateway-system namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-envoy-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+  policyTypes:
+    - Ingress
+---
+# Allow Envoy to reach user-service for JWKS fetch
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-envoy-to-user-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+      ports:
+        - port: {{ .Values.global.userService.port }}
+          protocol: TCP
+  policyTypes:
+    - Ingress
+---
+# Allow all meditrack services ingress from Envoy Gateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-from-envoy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: meditrack
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+  policyTypes:
+    - Ingress
+---
+# Allow user-service ingress from all pods in namespace + envoy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-user-service-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: envoy-gateway-system
+      ports:
+        - port: {{ .Values.global.userService.port }}
+          protocol: TCP
+  policyTypes:
+    - Ingress
+---
+# Allow user-service egress to DB + Redis + DNS + external HTTPS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-user-service-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+  egress:
+    - ports:
+        - port: 5432
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.userDb.name }}
+    - ports:
+        - port: 6379
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels:
+              app: {{ .Values.global.redis.name }}
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
+  policyTypes:
+    - Egress

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.global.frontend.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.frontend.name }}
+    app.kubernetes.io/name: {{ .Values.global.frontend.name }}
+    app.kubernetes.io/part-of: meditrack
+    app.kubernetes.io/managed-by: helm
+    environment: {{ .Values.global.environment }}
+spec:
+  replicas: {{ .Values.global.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.frontend.name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.global.frontend.name }}
+        app.kubernetes.io/name: {{ .Values.global.frontend.name }}
+        app.kubernetes.io/part-of: meditrack
+        environment: {{ .Values.global.environment }}
+    spec:
+      serviceAccountName: meditrack-app-sa
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: {{ .Values.global.frontend.name }}
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: {{ .Values.global.frontend.name }}
+          image: {{ .Values.global.registry }}/{{ .Values.global.frontend.image }}:{{ .Values.global.imageTag }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.global.frontend.resources.requests.cpu }}
+              memory: {{ .Values.global.frontend.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.global.frontend.resources.limits.cpu }}
+              memory: {{ .Values.global.frontend.resources.limits.memory }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          {{- include "meditrack.lifecycle" . | nindent 10 }}
+          {{- include "meditrack.containerSecurityContext" . | nindent 10 }}
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: nginx-log
+              mountPath: /var/log/nginx
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: frontend-nginx-config
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: nginx-log
+          emptyDir: {}

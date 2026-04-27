@@ -1,0 +1,12 @@
+{{- if .Values.global.medicalDb.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.global.medicalDb.name }}-pdb
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.global.medicalDb.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.medicalDb.name }}
+{{- end }}

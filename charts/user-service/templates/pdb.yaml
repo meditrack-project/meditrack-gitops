@@ -1,0 +1,12 @@
+{{- if .Values.global.userService.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.global.userService.name }}-pdb
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.global.userService.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.userService.name }}
+{{- end }}

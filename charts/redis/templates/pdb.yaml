@@ -1,0 +1,12 @@
+{{- if .Values.global.redis.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.global.redis.name }}-pdb
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.global.redis.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.redis.name }}
+{{- end }}

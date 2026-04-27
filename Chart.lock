@@ -1,0 +1,30 @@
+dependencies:
+- name: user-service
+  repository: file://charts/user-service
+  version: 2.0.0
+- name: medical-service
+  repository: file://charts/medical-service
+  version: 2.0.0
+- name: health-service
+  repository: file://charts/health-service
+  version: 2.0.0
+- name: ai-service
+  repository: file://charts/ai-service
+  version: 2.0.0
+- name: frontend
+  repository: file://charts/frontend
+  version: 2.0.0
+- name: user-db
+  repository: file://charts/user-db
+  version: 2.0.0
+- name: medical-db
+  repository: file://charts/medical-db
+  version: 2.0.0
+- name: health-db
+  repository: file://charts/health-db
+  version: 2.0.0
+- name: redis
+  repository: file://charts/redis
+  version: 2.0.0
+digest: sha256:f646d8d37b4495d9b50328c4ceaac4ace8301100bd65d8667222c206d906c326
+generated: "2026-04-25T07:43:55.87575285Z"

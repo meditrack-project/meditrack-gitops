@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: meditrack-quota
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  hard:
+    requests.cpu: {{ .Values.global.resourceQuota.requests.cpu | quote }}
+    requests.memory: {{ .Values.global.resourceQuota.requests.memory | quote }}
+    limits.cpu: {{ .Values.global.resourceQuota.limits.cpu | quote }}
+    limits.memory: {{ .Values.global.resourceQuota.limits.memory | quote }}
+    pods: {{ .Values.global.resourceQuota.pods | quote }}
+    services: {{ .Values.global.resourceQuota.services | quote }}
+    persistentvolumeclaims: {{ .Values.global.resourceQuota.pvcs | quote }}

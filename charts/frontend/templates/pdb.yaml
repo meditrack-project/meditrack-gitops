@@ -1,0 +1,12 @@
+{{- if .Values.global.frontend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.global.frontend.name }}-pdb
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.global.frontend.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ .Values.global.frontend.name }}
+{{- end }}

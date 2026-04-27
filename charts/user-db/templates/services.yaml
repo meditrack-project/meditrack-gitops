@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.userDb.name }}-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.userDb.name }}
+    app.kubernetes.io/name: {{ .Values.global.userDb.name }}
+    app.kubernetes.io/part-of: meditrack-db
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: {{ .Values.global.userDb.name }}
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.userDb.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.userDb.name }}
+    app.kubernetes.io/name: {{ .Values.global.userDb.name }}
+    app.kubernetes.io/part-of: meditrack-db
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.global.userDb.name }}
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP

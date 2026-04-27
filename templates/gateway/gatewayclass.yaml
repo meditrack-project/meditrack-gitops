@@ -1,0 +1,20 @@
+# ─────────────────────────────────────────────────────────────
+# MediTrack — GatewayClass (created once from meditrack-dev)
+# Environment: cluster-scoped
+# Phase: 2 — Kubernetes + Helm Implementation
+# ─────────────────────────────────────────────────────────────
+{{- if and .Values.global.gateway.enabled (eq .Release.Name "meditrack-dev") }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ .Values.global.gateway.className }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: meditrack-envoy-config
+    namespace: {{ .Values.global.namespace.infra }}
+{{- end }}

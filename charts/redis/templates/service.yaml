@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.redis.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.redis.name }}
+    app.kubernetes.io/name: {{ .Values.global.redis.name }}
+    app.kubernetes.io/part-of: meditrack
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.global.redis.name }}
+  ports:
+    - port: {{ .Values.global.redis.port }}
+      targetPort: {{ .Values.global.redis.port }}
+      protocol: TCP

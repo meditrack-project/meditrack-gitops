@@ -1,0 +1,20 @@
+# ─────────────────────────────────────────────────────────────
+# MediTrack — ClusterRoles (created once from meditrack-dev)
+# Environment: cluster-scoped
+# Phase: 2 — Kubernetes + Helm Implementation
+# ─────────────────────────────────────────────────────────────
+{{- if eq .Release.Name "meditrack-dev" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: meditrack-monitoring-clusterrole
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods", "services", "endpoints", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+{{- end }}

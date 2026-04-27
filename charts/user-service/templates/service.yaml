@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.global.userService.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.global.userService.name }}
+    app.kubernetes.io/name: {{ .Values.global.userService.name }}
+    app.kubernetes.io/part-of: meditrack
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.global.userService.name }}
+  ports:
+    - port: {{ .Values.global.userService.port }}
+      targetPort: {{ .Values.global.userService.port }}
+      protocol: TCP
