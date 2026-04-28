@@ -16,10 +16,14 @@ environment: {{ .Values.global.environment }}
 {{- end -}}
 
 {{/*
-Full image path helper
+Full image path using per-service imageTag with fallback to global.imageTag
+Usage:
+  {{ include "meditrack.image" (dict "root" . "service" .Values.global.userService) }}
 */}}
 {{- define "meditrack.image" -}}
-{{ .registry }}/{{ .image }}:{{ .tag }}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- printf "%s/%s:%s" $root.Values.global.registry $service.image (default $root.Values.global.imageTag $service.imageTag) -}}
 {{- end -}}
 
 {{/*
@@ -107,16 +111,4 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 3
-{{- end -}}
-
-
-{{/*
-Build full image path using per-service imageTag with fallback to global.imageTag
-Usage:
-  {{ include "meditrack.image" (dict "root" . "service" .Values.global.userService) }}
-*/}}
-{{- define "meditrack.image" -}}
-{{- $root := .root -}}
-{{- $service := .service -}}
-{{- printf "%s/%s:%s" $root.Values.global.registry $service.image (default $root.Values.global.imageTag $service.imageTag) -}}
 {{- end -}}
