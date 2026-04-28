@@ -30,7 +30,7 @@ global:
   userService:
     imageTag: "v2.0.2"
   medicalService:
-    imageTag: "v2.0.1"
+    imageTag: "v2.0.2"
   healthService:
     imageTag: "v2.0.1"
   aiService:
