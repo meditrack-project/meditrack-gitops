@@ -546,3 +546,40 @@ spec:
           protocol: TCP
   policyTypes:
     - Egress
+---
+# ─────────────────────────────────────────────────────────────
+# MONITORING NETWORK POLICIES
+# Allow Prometheus scraping and Promtail log collection
+# ─────────────────────────────────────────────────────────────
+
+# Allow Prometheus to scrape all meditrack service pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "meditrack.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.global.namespace.monitoring }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: {{ .Values.global.userService.port }}
+          protocol: TCP
+        - port: {{ .Values.global.medicalService.port }}
+          protocol: TCP
+        - port: {{ .Values.global.healthService.port }}
+          protocol: TCP
+        - port: {{ .Values.global.aiService.port }}
+          protocol: TCP
+        - port: 8080
+          protocol: TCP
