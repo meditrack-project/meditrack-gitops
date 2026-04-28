@@ -208,7 +208,7 @@ global:
     pdb:
       enabled: false
   frontend:
-    imageTag: "v2"
+    imageTag: "v2.0.1-dev"
     replicas: 1
     resources:
       requests:
