@@ -307,6 +307,10 @@ global:
     storageClass: meditrack-nfs
     createStorageClass: false
 
+  monitoring:
+    namespace: monitoring
+    prometheusLabel: monitoring
+
   # ─── Application Services ─────────────────────────────────
 
   userService:
