@@ -32,7 +32,7 @@ global:
   medicalService:
     imageTag: "v2.0.1"
   healthService:
-    imageTag: "v2"
+    imageTag: "v2.0.1"
   aiService:
     imageTag: "v2.0.2"
   frontend:
