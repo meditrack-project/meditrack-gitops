@@ -34,7 +34,7 @@ global:
   healthService:
     imageTag: "v2"
   aiService:
-    imageTag: "v2.0.1"
+    imageTag: "v2.0.2"
   frontend:
     imageTag: "v2"
   resourceQuota:
