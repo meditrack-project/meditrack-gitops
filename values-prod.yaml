@@ -28,7 +28,7 @@ global:
   gateway:
     listenerName: prod
   userService:
-    imageTag: "v2"
+    imageTag: "v2.0.1"
   medicalService:
     imageTag: "v2"
   healthService:
