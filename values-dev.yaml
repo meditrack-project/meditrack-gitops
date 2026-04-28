@@ -180,7 +180,7 @@ global:
     pdb:
       enabled: false
   healthService:
-    imageTag: "v2.0.1-dev"
+    imageTag: "v2.0.2-dev"
     replicas: 1
     resources:
       requests:
