@@ -152,7 +152,7 @@ global:
   gateway:
     listenerName: dev
   userService:
-    imageTag: "v2.0.5-dev"
+    imageTag: "v2.0.6-dev"
     replicas: 1
     resources:
       requests:
